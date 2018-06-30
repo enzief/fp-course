@@ -92,7 +92,7 @@ printFile f c = putStrLn f >>= (\_ -> putStrLn c)
 printFiles ::
   List (FilePath, Chars)
   -> IO ()
-printFiles = void . sequence . (<$>) (\tp -> printFile (fst tp) (snd tp))
+printFiles = foreach (\tp -> printFile (fst tp) (snd tp))
 
 -- Given a file name, return (file name and file contents).
 -- Use @readFile@.
@@ -118,9 +118,15 @@ run = (=<<) ((=<<) printFiles . getFiles . lines . snd) . getFile
 -- /Tip:/ use @getArgs@ and @run@
 main ::
   IO ()
-main = (void . sequence . (<$>) run) =<< getArgs
+main = foreach run =<< getArgs
 
 ----
+
+foreach ::
+  (a -> IO b)
+  -> List a
+  -> IO ()
+foreach f = void . sequence . (<$>) f
 
 -- Was there was some repetition in our solution?
 -- ? `sequence . (<$>)`
