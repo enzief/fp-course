@@ -97,8 +97,7 @@ instance Applicative (State s) where
     State s (a -> b)
     -> State s a
     -> State s b 
-  (<*>) =
-    error "todo: Course.State (<*>)#instance (State s)"
+  State sf <*> State sa = State ((\(f, s1) -> let (a, s2) = sa s1 in (f a , s2)) <$> sf)
 
 -- | Implement the `Bind` instance for `State s`.
 --
