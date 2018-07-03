@@ -146,22 +146,20 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat ls = findM f ls
+firstRepeat ls = fst $ runState (findState checkInsert ls) $ State $ const (False, S.empty)
+
+findState ::
+  (a -> State (S.Set a) Bool)
+  -> List a
+  -> State (S.Set a) (Optional a)
+findState p set (a :. t) = (\(b , s) -> if b then (const . Full a) <$> s else findState s t) =<< (runState . p a)
+findState p Nil = (const Empty) <$> p
 
 checkInsert ::
   Ord a =>
-  State (S.Set, a) Bool
-checkInsert = State $ \(set, a) -> (,) (S.member a set) $ (,) (S.insert a set) a
-
-init :: State S.Set Bool
-init =  State $ \_ -> (False, S.singleton a)
-
-check ::
-  Ord a =>
   a
-  -> State (S.Set, a) Bool
-  -> Optional a
-check State st = seen 
+  -> State (S.Set a) Bool
+checkInsert a = State $ \set -> (,) (S.member a set) $ (,) (S.insert a set)
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
