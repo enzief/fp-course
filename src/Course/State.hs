@@ -146,13 +146,13 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat ls = fst $ runState (findState checkInsert ls) $ State $ const (False, S.empty)
+firstRepeat ls = fst $ runState (findState checkInsert ls) S.empty
 
 findState ::
   (a -> State (S.Set a) Bool)
   -> List a
   -> State (S.Set a) (Optional a)
-findState p set (a :. t) = (\(b , s) -> if b then (const . Full a) <$> s else findState s t) =<< (runState . p a)
+findState p (a :. t) = (\(b , s) -> if b then (\_ -> Full a) <$> s else findState s t) =<< (runState . p a)
 findState p Nil = (const Empty) <$> p
 
 checkInsert ::
