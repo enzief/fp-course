@@ -64,7 +64,7 @@ get = State $ \s -> (s , s)
 put ::
   s
   -> State s ()
-put s = State $ \_ -> ((), s)
+put s = State $ const $ (,) () s
 
 -- | Implement the `Functor` instance for `State s`.
 --
@@ -146,20 +146,21 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat ls = fst $ runState (findState checkInsert ls) S.empty
+firstRepeat = findState S.empty
 
 findState ::
-  (a -> State (S.Set a) Bool)
+  Ord a =>
+  S.Set a
   -> List a
-  -> State (S.Set a) (Optional a)
-findState p (a :. t) = (\(b , s) -> if b then (\_ -> Full a) <$> s else findState s t) =<< (runState . p a)
-findState p Nil = (const Empty) <$> p
+  -> Optional a
+findState set (a :. t) = let (b , s) = runState (checkInsert a) set in if b then Full a else findState s t
+findState _ Nil = Empty
 
 checkInsert ::
   Ord a =>
   a
   -> State (S.Set a) Bool
-checkInsert a = State $ \set -> (,) (S.member a set) $ (,) (S.insert a set)
+checkInsert a = State $ \set -> (,) (S.member a set) $ S.insert a set
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
