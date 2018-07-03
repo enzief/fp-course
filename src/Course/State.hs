@@ -111,7 +111,7 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  f =<< State sa = State $ (runState . f . fst) =<< sa
+  f =<< State sa = State $ \s -> let (a, s2) = sa s in runState (f a) s2
 
 -- | Find the first element in a `List` that satisfies a given predicate.
 -- It is possible that no element is found, hence an `Optional` result.
@@ -146,21 +146,13 @@ firstRepeat ::
   Ord a =>
   List a
   -> Optional a
-firstRepeat = findState S.empty
-
-findState ::
-  Ord a =>
-  S.Set a
-  -> List a
-  -> Optional a
-findState set (a :. t) = let (b , s) = runState (checkInsert a) set in if b then Full a else findState s t
-findState _ Nil = Empty
+firstRepeat l = eval (findM checkInsert l) S.empty
 
 checkInsert ::
   Ord a =>
   a
   -> State (S.Set a) Bool
-checkInsert a = State $ \set -> (,) (S.member a set) $ S.insert a set
+checkInsert a = (\set -> (\_ -> pure (S.member a set)) =<< put (S.insert a set)) =<< get
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.

@@ -69,7 +69,7 @@ instance Monad ((->) t) where
     (a -> ((->) t b))
     -> ((->) t a)
     -> ((->) t b)
-  (=<<) f ta = \t -> f (ta t) t
+  f =<< ta = \t -> f (ta t) t
 
 -- | Witness that all things with (=<<) and (<$>) also have (<*>).
 --
