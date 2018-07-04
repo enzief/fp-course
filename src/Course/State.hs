@@ -152,7 +152,7 @@ checkInsert ::
   Ord a =>
   a
   -> State (S.Set a) Bool
-checkInsert a = (\set -> (\_ -> pure (S.member a set)) =<< put (S.insert a set)) =<< get
+checkInsert a = (\set -> (const $ pure (S.member a set)) =<< put (S.insert a set)) =<< get
 
 -- | Remove all duplicate elements in a `List`.
 -- /Tip:/ Use `filtering` and `State` with a @Data.Set#Set@.
@@ -164,8 +164,7 @@ distinct ::
   Ord a =>
   List a
   -> List a
-distinct =
-  error "todo: Course.State#distinct"
+distinct l = eval (filtering ((not <$>) . checkInsert) l) S.empty
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
@@ -191,5 +190,9 @@ distinct =
 isHappy ::
   Integer
   -> Bool
-isHappy =
-  error "todo: Course.State#isHappy"
+isHappy = (contains 1) . firstRepeat . (produce digitSquareSum)
+
+digitSquareSum ::
+  Integer
+  -> Integer
+digitSquareSum = toInteger . sum . (join (*) . digitToInt <$>) . show'
