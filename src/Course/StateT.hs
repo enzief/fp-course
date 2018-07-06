@@ -178,8 +178,13 @@ distinct' ::
   (Ord a, Num a) =>
   List a
   -> List a
-distinct' =
-  error "todo: Course.StateT#distinct'"
+distinct' l = eval' (filtering checkInsert' l) S.empty
+
+checkInsert' ::
+  (Ord a, Num a) =>
+  a
+  -> State' (S.Set a) Bool
+checkInsert' a = state' $ \set -> (not (S.member a set), S.insert a set)
 
 -- | Remove all duplicate elements in a `List`.
 -- However, if you see a value greater than `100` in the list,
@@ -196,8 +201,13 @@ distinctF ::
   (Ord a, Num a) =>
   List a
   -> Optional (List a)
-distinctF =
-  error "todo: Course.StateT#distinctF"
+distinctF l = evalT (filtering checkInsertO l) S.empty
+
+checkInsertO ::
+  (Ord a, Num a) =>
+  a
+  -> StateT (S.Set a) Optional Bool
+checkInsertO a = StateT $ \set -> if a > 100 then Empty else Full (not (S.member a set), S.insert a set)
 
 -- | An `OptionalT` is a functor of an `Optional` value.
 data OptionalT f a =
@@ -211,8 +221,11 @@ data OptionalT f a =
 -- >>> runOptionalT $ (+1) <$> OptionalT (Full 1 :. Empty :. Nil)
 -- [Full 2,Empty]
 instance Functor f => Functor (OptionalT f) where
-  (<$>) =
-    error "todo: Course.StateT (<$>)#instance (OptionalT f)"
+  (<$>) ::
+    (a -> b)
+    -> OptionalT f a
+    -> OptionalT f b
+  f <$> OptionalT ga = OptionalT $ (f <$>) <$> ga
 
 -- | Implement the `Applicative` instance for `OptionalT f` given a Monad f.
 --
@@ -239,10 +252,16 @@ instance Functor f => Functor (OptionalT f) where
 -- >>> runOptionalT $ OptionalT (Full (+1) :. Full (+2) :. Nil) <*> OptionalT (Full 1 :. Empty :. Nil)
 -- [Full 2,Empty,Full 3,Empty]
 instance Monad f => Applicative (OptionalT f) where
-  pure =
-    error "todo: Course.StateT pure#instance (OptionalT f)"
-  (<*>) =
-    error "todo: Course.StateT (<*>)#instance (OptionalT f)"
+  pure ::
+    a
+    -> OptionalT f a
+  pure = OptionalT . pure . pure
+  (<*>) ::
+    OptionalT f (a -> b)
+    -> OptionalT f a
+    -> OptionalT f b
+  (OptionalT fof) <*> (OptionalT foa) = OptionalT $ (\oa -> (\of' -> of' <*> oa) <$> fof) =<< foa
+--    OptionalT $ lift2 (<*>) fof foa
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --
