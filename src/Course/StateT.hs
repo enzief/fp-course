@@ -260,16 +260,28 @@ instance Monad f => Applicative (OptionalT f) where
     OptionalT f (a -> b)
     -> OptionalT f a
     -> OptionalT f b
-  (OptionalT fof) <*> (OptionalT foa) = OptionalT $ (\oa -> (\of' -> of' <*> oa) <$> fof) =<< foa
+  (OptionalT fof) <*> (OptionalT foa) =
+--    OptionalT $ (\oa -> (\of' -> of' <*> oa) <$> fof) =<< foa
+    OptionalT $ (\of' -> (\oa -> of' <*> oa) <$> foa) =<< fof
 --    OptionalT $ lift2 (<*>) fof foa
+--(\oa -> (\of' -> of' <*> oa) <$> (Empty :. Nil)) =<< (Full 1 :. Full 2 :. Nil)
+--(\oa -> map (\of' -> of' <*> oa) (Empty :. Nil)) =<< (Full 1 :. Full 2 :. Nil)
+--(\oa -> (Empty <*> oa) :. Nil) =<< (Full 1 :. Full 2 :. Nil)
+--flatten (map (\oa -> (Empty <*> oa) :. Nil) (Full 1 :. Full 2 :. Nil))
+--flatten (((Empty <*> Full 1) :. Nil):. ((Empty <*> Full 2) :. Nil) :. Nil)
+--((Empty <*> Full 1) :. Nil) ++ ((Empty <*> Full 2) :. Nil) ++ Nil
+--((Empty <*> Full 1) :. (Empty <*> Full 2) :. Nil)
+--Empty :. Empty :. Nil
 
 -- | Implement the `Monad` instance for `OptionalT f` given a Monad f.
 --
 -- >>> runOptionalT $ (\a -> OptionalT (Full (a+1) :. Full (a+2) :. Nil)) =<< OptionalT (Full 1 :. Empty :. Nil)
 -- [Full 2,Full 3,Empty]
 instance Monad f => Monad (OptionalT f) where
-  (=<<) =
-    error "todo: Course.StateT (=<<)#instance (OptionalT f)"
+  afo =<< OptionalT foa = OptionalT $ (\oa ->
+                                         -- Optional (f (Optional b))
+                                         (runOptionalT . afo <$> oa) ?? (pure Empty)
+                                      ) =<< foa
 
 -- | A `Logger` is a pair of a list of log values (`[l]`) and an arbitrary value (`a`).
 data Logger l a =
