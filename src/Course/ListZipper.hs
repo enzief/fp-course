@@ -298,8 +298,9 @@ findRight p (ListZipper l a r) = let (bl, br) = break p r in
 moveLeftLoop ::
   ListZipper a
   -> ListZipper a
-moveLeftLoop =
-  error "todo: Course.ListZipper#moveLeftLoop"
+moveLeftLoop (ListZipper l a r) =
+  case l of h :. t -> ListZipper t h (a :. r)
+            Nil    -> let rh :. rt = reverse (a :. r) in ListZipper rt rh Nil
 
 -- | Move the zipper right, or if there are no elements to the right, go to the far left.
 --
@@ -311,8 +312,9 @@ moveLeftLoop =
 moveRightLoop ::
   ListZipper a
   -> ListZipper a
-moveRightLoop =
-  error "todo: Course.ListZipper#moveRightLoop"
+moveRightLoop (ListZipper l a r) =
+  case r of h :. t -> ListZipper (a :. l) h t
+            Nil    -> let lh :. lt = reverse (a :. l) in ListZipper Nil lh lt
 
 -- | Move the zipper one position to the left.
 --
