@@ -342,8 +342,25 @@ distinctG ::
   (Integral a, Show a) =>
   List a
   -> Logger Chars (Optional (List a))
-distinctG =
-  error "todo: Course.StateT#distinctG"
+distinctG la = runOptionalT (evalT (filtering checkInsertG la) S.empty)
+
+checkInsertG ::
+  (Integral a, Show a) =>
+  a
+  -> StateT (S.Set a) (OptionalT (Logger Chars)) Bool
+checkInsertG a = StateT $
+  \set -> OptionalT $
+    if a > 100 then
+      log1 (fromString ("aborting > 100: " P.++ show a)) Empty
+    else
+      let l = if even a then log1 (fromString ("even number: " P.++ show a)) else pure
+        in (l . Full) (S.notMember a set, S.insert a set)
+-- How are logs appended?
+-- after each iteration we have a new state as (Set[a],  OptionT[Logger[Chars, ?], Bool])
+--                                             (set + a, Logger [log] Optional(Bool))
+-- `filtering` is impl as `foldRight` so the previous context Logger [log] Optional
+-- is mapped over. As Logger Applicative imple: Logger [log] Optional <*> Logger [more logs] Optional
+-- results in new Logger [log] ++ [more logs] Optional ?
 
 onFull ::
   Applicative f =>
