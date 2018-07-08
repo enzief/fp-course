@@ -119,8 +119,9 @@ constantParser =
 -- True
 character ::
   Parser Char
-character =
-  error "todo: Course.Parser#character"
+character = P $ \l -> case l of c :. r -> Result r c
+                                Nil    -> UnexpectedEof
+
 
 -- | Parsers can map.
 -- Write a Functor instance for a @Parser@.
@@ -132,8 +133,7 @@ instance Functor Parser where
     (a -> b)
     -> Parser a
     -> Parser b
-  (<$>) =
-     error "todo: Course.Parser (<$>)#instance Parser"
+  f <$> (P ps) = P $ ((<$>) f) <$> ps
 
 -- | Return a parser that always succeeds with the given value and consumes no input.
 --
@@ -142,8 +142,7 @@ instance Functor Parser where
 valueParser ::
   a
   -> Parser a
-valueParser =
-  error "todo: Course.Parser#valueParser"
+valueParser a = P $ \i -> Result i a
 
 -- | Return a parser that tries the first parser for a successful value.
 --
@@ -166,8 +165,7 @@ valueParser =
   Parser a
   -> Parser a
   -> Parser a
-(|||) =
-  error "todo: Course.Parser#(|||)"
+(P p1) ||| (P p2) = P $ \i -> let res1 = p1 i in if isErrorResult res1 then p2 i else res1
 
 infixl 3 |||
 
@@ -198,8 +196,7 @@ instance Monad Parser where
     (a -> Parser b)
     -> Parser a
     -> Parser b
-  (=<<) =
-    error "todo: Course.Parser (=<<)#instance Parser"
+  f =<< (P p) = P $ \i -> onResult (p i) (\i2 a -> parse (f a) i2)
 
 -- | Write an Applicative functor instance for a @Parser@.
 -- /Tip:/ Use @(=<<)@.
@@ -213,8 +210,7 @@ instance Applicative Parser where
     Parser (a -> b)
     -> Parser a
     -> Parser b
-  (<*>) =
-    error "todo: Course.Parser (<*>)#instance Parser"
+  pf <*> pa = (\f -> f <$> pa) =<< pf
 
 -- | Return a parser that continues producing a list of values from the given parser.
 --
@@ -240,8 +236,7 @@ instance Applicative Parser where
 list ::
   Parser a
   -> Parser (List a)
-list =
-  error "todo: Course.Parser#list"
+list pa = list1 pa ||| (pure Nil)
 
 -- | Return a parser that produces at least one value from the given parser then
 -- continues producing a list of values from the given parser (to ultimately produce a non-empty list).
@@ -259,8 +254,7 @@ list =
 list1 ::
   Parser a
   -> Parser (List a)
-list1 =
-  error "todo: Course.Parser#list1"
+list1 pa = (\a -> ((:.) a) <$> (list pa)) =<< pa
 
 -- | Return a parser that produces a character but fails if
 --
