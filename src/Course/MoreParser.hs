@@ -1,17 +1,17 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE RebindableSyntax    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Course.MoreParser where
 
-import Course.Core
-import Course.Parser
-import Course.List
-import Course.Optional
-import Course.Applicative
-import Course.Monad
-import Course.Functor
-import Course.Traversable
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Monad
+import           Course.Optional
+import           Course.Parser
+import           Course.Traversable
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -62,7 +62,7 @@ tok pa = (\a -> (const a) <$> spaces) =<< pa
 --
 -- >>> isErrorResult (parse (charTok 'a') "dabc")
 -- True
--- 
+--
 -- /Tip:/ Use `tok` and `is`.
 charTok ::
   Char
@@ -76,7 +76,7 @@ charTok = tok . is
 --
 -- >>> isErrorResult( parse commaTok "1,23")
 -- True
--- 
+--
 -- /Tip:/ Use `charTok`.
 commaTok ::
   Parser Char
@@ -203,11 +203,12 @@ between ::
   -> Parser c
   -> Parser a
   -> Parser a
-between po pc pa = do
-  o <- po
-  a <- pa
-  c <- pc
-  pure a
+between po pc pa =
+  do
+    o <- po
+    a <- pa
+    c <- pc
+    pure a
 
 -- | Write a function that applies the given parser in between the two given characters.
 --

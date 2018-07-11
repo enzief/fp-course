@@ -109,8 +109,7 @@ toSpecialCharacter c =
 -- True
 jsonString ::
   Parser Chars
-jsonString =
-  error "todo: Course.JsonParser#jsonString"
+jsonString = betweenCharTok '"' '"' $ list (hex ||| character )
 
 -- | Parse a JSON rational.
 --

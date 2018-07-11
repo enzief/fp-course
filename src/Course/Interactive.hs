@@ -1,16 +1,16 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Course.Interactive where
 
-import Course.Core
-import Course.Functor
-import Course.Applicative
-import Course.Monad
-import Course.Traversable
-import Course.List
-import Course.Optional
+import           Course.Applicative
+import           Course.Core
+import           Course.Functor
+import           Course.List
+import           Course.Monad
+import           Course.Optional
+import           Course.Traversable
 
 -- | Eliminates any value over which a functor is defined.
 vooid ::
@@ -83,7 +83,9 @@ data Op =
 convertInteractive ::
   IO ()
 convertInteractive =
-  error "todo: Course.Interactive#convertInteractive"
+  putStr "Enter a character: " >-
+  getChar >>= \c ->
+  putStrLn "" >- (putStrLn $ (toUpper c) :. Nil)
 
 -- |
 --
@@ -111,7 +113,10 @@ convertInteractive =
 reverseInteractive ::
   IO ()
 reverseInteractive =
-  error "todo: Course.Interactive#reverseInteractive"
+  putStr "Input file: " >-
+  getLine >>= \input ->
+  readFile input >>= \content ->
+  putStr (reverse content)
 
 -- |
 --
@@ -137,7 +142,14 @@ reverseInteractive =
 encodeInteractive ::
   IO ()
 encodeInteractive =
-  error "todo: Course.Interactive#encodeInteractive"
+  putStr "Enter a URL to encode: " >-
+  getLine >>= \raw ->
+  let encoded = raw >>= \c -> case c of
+                           ' '  -> "%20"
+                           '\t' -> "%09"
+                           '"'  -> "%22"
+                           _    -> c :. Nil
+  in putStrLn encoded
 
 interactive ::
   IO ()
